@@ -20,6 +20,10 @@ const bookingSchema = new mongoose.Schema(
       type: "String",
       required: true,
     },
+    User_Email: {  //  New field to store the user's email
+      type: String,
+      required: true,
+    },
     Contact_Number: {    
       type: "Number",
       required: true,

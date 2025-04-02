@@ -58,15 +58,17 @@ export const createBooking = async (req, res) => {
   const newBooking = req.body;
   newBooking["Booking_ID"] = bookingId;
   newBooking["Student_ID"] = req.user.Student_ID;
+  newBooking["User_Email"] = req.user.Email;  //  Save user's email in the booking
+  newBooking["Status"] = "pending"; // Default status
 
   try {
     const savedBooking = await booking.create(newBooking);
 
-    // 📩 Send Email Notification
+    // 📩 Email notification for booking request submission
     const emailContent = `
-      <p>Dear <b>${req.user.Name} || User</b>,</p>
+      <p>Dear User,</p>
       <p>Your booking request for <b>${selectedHallName}</b> from <b>${req.body.Time_From}</b> to <b>${req.body.Time_To}</b> has been submitted successfully. It is currently <b style="color:orange;">pending approval.</b></p>
-      <p>Regards,<br><b>SGSITS Staff</b></p>
+      <p>Regards,<br><b>CampusEase Team</b></p>
     `;
 
     await sendEmail(req.user.Email, "Booking Request Submitted ✅", emailContent);
@@ -79,6 +81,7 @@ export const createBooking = async (req, res) => {
     });
   }
 };
+
 
 //DELETE BOOKING
 export const deleteBooking = async (req, res) => {
@@ -167,15 +170,32 @@ export const getAdminBookings = async (req, res) => {
 //Update Bookings
 export const updateBooking = async (req, res) => {
   try {
-    const halls = await booking
-      .find({
-        _id: req.body._id,
-      })
-      .updateOne({
-        Status: req.body.Status,
-      });
+    const { _id, Status } = req.body;
 
-    res.status(200).json(halls);
+    // Find the booking by ID
+    const updatedBooking = await booking.findOneAndUpdate(
+      { _id },
+      { Status },
+      { new: true }
+    );
+
+    if (!updatedBooking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    // 📩 If the status is "approved", send an approval email
+    if (Status === "approved") {
+      const emailContent = `
+        <p>Dear User,</p>
+        <p>We are pleased to inform you that your booking request for <b>${updatedBooking.Hall_Name}</b> on <b>${updatedBooking.Date}</b> from <b>${updatedBooking.Time_From}</b> to <b>${updatedBooking.Time_To}</b> has been <b style="color:green;">approved ✅</b>.</p>
+        <p>Enjoy your event!</p>
+        <p>Regards,<br><b>CampusEase Team</b></p>
+      `;
+
+      await sendEmail(updatedBooking.User_Email, "Booking Approved ✅", emailContent);
+    }
+
+    res.status(200).json(updatedBooking);
   } catch (err) {
     res.status(400).json({
       status: "Failed",
