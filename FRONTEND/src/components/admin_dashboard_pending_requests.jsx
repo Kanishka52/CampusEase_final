@@ -13,8 +13,9 @@ function AdminPendingRequests(props) {
     const fetchData = async () => {
       try {
         //  const response = await fetch("http://localhost:3001/api/booking/adminBookings", {
+        console.log("Token being sent:", userData.token);
         const response = await fetch(`${BASE_URL}/api/booking/adminBookings`, {
-        // const response = await fetch("https://campusease-final.onrender.com/api/booking/adminBookings", {
+          // const response = await fetch("https://campusease-final.onrender.com/api/booking/adminBookings", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -45,25 +46,24 @@ function AdminPendingRequests(props) {
   const formatISODate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    }); 
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
   const formatTime = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
- 
-
-  const filteredBookings =
-    selectedStatus === "all"
+//console.log("All bookings:", response.data);
+  const filteredBookings = (selectedStatus === "all"
       ? bookingData
-      : bookingData.filter((booking) => booking.Status === selectedStatus);
+      : bookingData.filter((booking) => booking.Status === selectedStatus))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const getStatusClassName = (status) => {
     switch (status) {
@@ -80,9 +80,10 @@ function AdminPendingRequests(props) {
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     try {
+      
       const response = await fetch(`${BASE_URL}/api/booking/updateBooking`, {
-      // const response = await fetch("http://localhost:3001/api/booking/updateBooking", {
-      // const response = await fetch("https://campusease-final.onrender.com/api/booking/updateBooking", {
+        // const response = await fetch("http://localhost:3001/api/booking/updateBooking", {
+        // const response = await fetch("https://campusease-final.onrender.com/api/booking/updateBooking", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -94,7 +95,9 @@ function AdminPendingRequests(props) {
       if (response.ok) {
         setBookingData((prev) =>
           prev.map((booking) =>
-            booking._id === bookingId ? { ...booking, Status: newStatus } : booking
+            booking._id === bookingId
+              ? { ...booking, Status: newStatus }
+              : booking
           )
         );
       } else {
@@ -110,47 +113,74 @@ function AdminPendingRequests(props) {
       {/* Booking List */}
       <div className="mt-6 max-h-[550px] overflow-y-auto">
         <ul>
-          {filteredBookings.map((booking) => (
-            <li key={booking._id} className="mb-4">
-              <div
-                className={`p-6 rounded-lg shadow-md ${getStatusClassName(booking.Status)}`}
-              >
-                <h5 className="mb-2 text-lg font-semibold">
-                   {/* {booking.Hall_Name} | 📅 {formatISODate(booking.Date)} */}
-                   {booking.Hall_Name} | 📅 {formatISODate(booking.Date)} | 🕑 Time: {formatTime(booking.Time_From)} - {formatTime(booking.Time_To)}
-                </h5>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm">
-                    <p> Requester: <span className="font-semibold">{booking.Booking_Person_Name}</span></p>
-                    <p> Contact_Number: <span className="font-semibold">{booking.Contact_Number}</span></p>
-                    <p> Department/Club: <span className="font-semibold">{booking.Affiliated}</span></p>
-                    <p> Reason: {booking.Reason}</p>
+          {Array.isArray(filteredBookings) &&
+            filteredBookings.map((booking) => (
+              <li key={booking._id} className="mb-4">
+                <div
+                  className={`p-6 rounded-lg shadow-md ${getStatusClassName(
+                    booking.Status
+                  )}`}
+                >
+                  <h5 className="mb-2 text-lg font-semibold">
+                    {/* {booking.Hall_Name} | 📅 {formatISODate(booking.Date)} */}
+                    {booking.Hall_Name} | 📅 {formatISODate(booking.Date)} | 🕑
+                    Time: {formatTime(booking.Time_From)} -{" "}
+                    {formatTime(booking.Time_To)}
+                  </h5>
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm">
+                      <p>
+                        {" "}
+                        Requester:{" "}
+                        <span className="font-semibold">
+                          {booking.Booking_Person_Name}
+                        </span>
+                      </p>
+                      <p>
+                        {" "}
+                        Contact_Number:{" "}
+                        <span className="font-semibold">
+                          {booking.Contact_Number}
+                        </span>
+                      </p>
+                      <p>
+                        {" "}
+                        Department/Club:{" "}
+                        <span className="font-semibold">
+                          {booking.Affiliated}
+                        </span>
+                      </p>
+                      <p> Reason: {booking.Reason}</p>
+                    </div>
+                    <div className="text-sm text-right">
+                      <p className="text-gray-300">📌 Submitted On:</p>
+                      <p>{formatISODate(booking.createdAt)}</p>
+                    </div>
                   </div>
-                  <div className="text-sm text-right">
-                    <p className="text-gray-300">📌 Submitted On:</p>
-                    <p>{formatISODate(booking.createdAt)}</p>
-                  </div>
-                </div>
 
-                {booking.Status === "pending" && (
-                  <div className="flex justify-end mt-4">
-                    <button
-                      className="bg-green-500 text-white hover:bg-green-600 font-semibold px-4 py-2 rounded mr-2"
-                      onClick={() => handleStatusUpdate(booking._id, "approved")}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      className="bg-red-500 text-white hover:bg-red-600 font-semibold px-4 py-2 rounded"
-                      onClick={() => handleStatusUpdate(booking._id, "rejected")}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                )}
-              </div>
-            </li>
-          ))}
+                  {booking.Status === "pending" && (
+                    <div className="flex justify-end mt-4">
+                      <button
+                        className="bg-green-500 text-white hover:bg-green-600 font-semibold px-4 py-2 rounded mr-2"
+                        onClick={() =>
+                          handleStatusUpdate(booking._id, "approved")
+                        }
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className="bg-red-500 text-white hover:bg-red-600 font-semibold px-4 py-2 rounded"
+                        onClick={() =>
+                          handleStatusUpdate(booking._id, "rejected")
+                        }
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
         </ul>
       </div>
     </div>

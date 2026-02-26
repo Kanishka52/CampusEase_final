@@ -143,18 +143,6 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// export const checkusername = asyncHandler(async (req, res) => {
-//   try {
-//     const { name } = req.query;
-//     const existingUser = await User.findOne({ User_Name: name });
-
-//     res.json({ isUnique: !existingUser });
-//   } catch (error) {
-//     console.error(" Error checking username:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
 export const authUser = asyncHandler(async (req, res) => {
   // const { identifier, Password } = req.body;
   // console.log(identifier);

@@ -18,24 +18,21 @@ const router = express.Router();
 // General routes
 // AVAILABLE SLOTS FOR PARTICULAR HALL
 router.get("/availableslots", getAvailableTimes);
+// User Verification Route
+router.get("/verifyuser", verifyuser);
 
-// User Routes
 // GET User Bookings (Protected)
 router.get("/userBookings", protectUserRoutes, getUserBookings);
-
-// GET Booking by ID (Protected)
-router.get("/:id", protectUserRoutes, getBooking);
 
 // Admin Routes (Protected)
 router.post("/createBooking", protectUserRoutes, createBooking); 
 // router.post("/createBooking", protectAdminRoutes, createBooking); // Only admin can create bookings
-router.get("/allBookings", protectAdminRoutes, getAllBookings); // Only admin can view all bookings
+router.get("/allBookings", getAllBookings); // Only admin can view all bookings
 router.get("/adminBookings", protectAdminRoutes, getAdminBookings); // Only admin can view admin bookings
 router.delete("/deleteBooking", protectAdminRoutes, deleteBooking); // Only admin can delete bookings
 router.patch("/updateBooking", protectAdminRoutes, updateBooking); // Only admin can update bookings
 
-
-// User Verification Route
-router.get("/verifyuser", verifyuser);
+// GET Booking by ID (Protected)
+router.get("/:id", protectUserRoutes, getBooking);
 
 export default router;
